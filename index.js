@@ -92,6 +92,23 @@ var TrapType = {
 
 _expandConstantObject (TrapType);
 
+var SecurityLevel = {
+	0: "NoAuthNoPriv",
+	1: "AuthNoPriv",
+	2: "AuthPriv"
+};
+
+_expandConstantObject (SecurityLevel);
+
+var SecurityModel = {
+	0: "any",		// reserved
+	1: "SNMPv1",	// reserved
+	2: "SNMPv2c",	// reserved
+	3: "USM"		// User-based Security Model (USM)
+};
+
+_expandConstantObject (SecurityModel);
+
 var Version1 = 0;
 var Version2c = 1;
 
