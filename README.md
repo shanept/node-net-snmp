@@ -1,7 +1,7 @@
 
 # net-snmp
 
-This module implements version 1 and 2c of the [Simple Network Management
+This module implements version 1, 2c and 3 of the [Simple Network Management
 Protocol (SNMP)][SNMP].
 
 This module is installed using [node package manager (npm)][npm]:
@@ -15,10 +15,19 @@ It is loaded using the `require()` function:
 Sessions to remote hosts can then be created and used to perform SNMP requests
 and send SNMP traps or informs:
 
+    // SNMP v1/v2
     var session = snmp.createSession ("127.0.0.1", "public");
 
+    // SNMP v3
+    var session = snmp.createSession ("127.0.0.1", {
+        version: 3,             // IMPORTANT
+        flags: snmp.authPriv,
+        securityModel: snmp.USM,
+        securityParameters: {}  // User-based Security Model parameters
+    });
+
     var oids = ["1.3.6.1.2.1.1.5.0", "1.3.6.1.2.1.1.6.0"];
-    
+
     session.get (oids, function (error, varbinds) {
         if (error) {
             console.error (error);
@@ -46,23 +55,35 @@ This module aims to be fully compliant with the following RFCs:
  * [1155][1155] - Structure and Identification of Management Information
  * [1098][1098] - A Simple Network Management Protocol (version 1)
  * [2578][2578] - Structure of Management Information Version 2 (SMIv2)
- * [3416][3416] - Simple Network Management Protocol (SNMP) (version 2c)
+ * [3411][3411] - Architecture for SNMP Management Frameworks
+ * [3412][3412] - Message Processing and Dispatching for SNMP (version 3)
+ * [3414][3414] - User-based Security Model (version 3)
+ * [3415][3415] - View-based Access Control Model (version 3)
+ * [3416][3416] - Simple Network Management Protocol (SNMP) (version 2c/3)
+ * [5590][5590] - Transport Subsystem for SNMP (version 3)
+ * [5591][5591] - Transport Security Model for SNMP (version 3)
 
 However, this module does not implement, or export any method that might help
-to implement, the SNMP version 2c report request type.
+to implement, the SNMP version 2c/3 report request type.
 
 [1155]: https://tools.ietf.org/rfc/rfc1155.txt "RFC 1155"
 [1098]: https://tools.ietf.org/rfc/rfc1098.txt "RFC 1098"
 [2578]: https://tools.ietf.org/rfc/rfc2578.txt "RFC 2578"
+[3411]: https://tools.ietf.org/rfc/rfc3411.txt "RFC 3411"
+[3412]: https://tools.ietf.org/rfc/rfc3412.txt "RFC 3412"
+[3414]: https://tools.ietf.org/rfc/rfc3414.txt "RFC 3414"
+[3415]: https://tools.ietf.org/rfc/rfc3415.txt "RFC 3415"
 [3416]: https://tools.ietf.org/rfc/rfc3416.txt "RFC 3416"
+[5590]: https://tools.ietf.org/rfc/rfc5590.txt "RFC 5590"
+[5591]: https://tools.ietf.org/rfc/rfc5591.txt "RFC 5591"
 
 # Constants
 
 The following sections describe constants exported and used by this module.
 
-## snmp.Version1 & snmp.Version2c
+## snmp.Version1 & snmp.Version2c & snmp.Version3
 
-These constants are used to specify which of the two versions supported by
+These constants are used to specify which of the three versions supported by
 this module should be used.
 
 ## snmp.ErrorStatus
