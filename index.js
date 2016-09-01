@@ -540,6 +540,21 @@ RequestMessage.prototype.toBuffer = function () {
 	return this.buffer;
 };
 
+var V3RequestMessage = function(version, contextEngineID, contextName, scopedPDU, maxSizeResponseScopedPDU, securityModel, securityName, securityLevel, messageProcessingModel) {
+};
+
+V3RequestMessage.prototype.toBuffer = function() {
+	if (this.buffer)
+		return this.buffer;
+
+	var writer = new ber.Writer ();
+
+	writer.startSequence();
+
+	writer.writeInt (this.version);
+	writer.writeInt
+};
+
 var ResponseMessage = function (buffer) {
 	var reader = new ber.Reader (buffer);
 
@@ -1440,14 +1455,31 @@ Session.prototype.walk  = function () {
 	return this;
 };
 
+var Dispatcher = function(target, options) {
+	var args = [arguments[0], '', arguments[1]];
+	Dispatcher.super_.apply (this, args);
+};
+
+utils.inherits(Dispatcher, Session);
+
 /*****************************************************************************
  ** Exports
  **/
 
 exports.Session = Session;
+exports.Dispatcher = Dispatcher;
 
 exports.createSession = function (target, community, options) {
-	return new Session (target, community, options);
+	if (options.version && options.version > Version2) {
+		if (undefined !== options) {
+			throw new TypeError();		// What should I put in the description?
+		}
+
+		// community is really our options here
+		return new Dispatcher (target, community);
+	} else {
+		return new Session (target, community, options);
+	}
 };
 
 exports.isVarbindError = isVarbindError;
@@ -1455,6 +1487,7 @@ exports.varbindError = varbindError;
 
 exports.Version1 = Version1;
 exports.Version2c = Version2c;
+exports.Version3 = Version3;
 
 exports.ErrorStatus = ErrorStatus;
 exports.TrapType = TrapType;
