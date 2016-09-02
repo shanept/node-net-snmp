@@ -362,7 +362,14 @@ All SNMP requests are made using an instance of the `Session` class.  This
 module exports the `createSession()` function which is used to create
 instances of the `Session` class.
 
-## snmp.createSession ([target], [community], [options])
+## snmp.createSession
+
+Due to the current implementation, there are slightly separate APIs between
+SNMP Version1/2c and Version 3.
+
+### SNMP Version 1/2c
+
+`snmp.createSession ([target], [community], [options])`
 
 The `createSession()` function instantiates and returns an instance of the
 `Session` class:
@@ -380,9 +387,8 @@ The `createSession()` function instantiates and returns an instance of the
     var session = snmp.createSession ("127.0.0.1", "public", options);
 
 The optional `target` parameter defaults to `127.0.0.1`.  The optional
-`community` parameter defaults to `public`, for SNMPv1 or SNMPv2c only.
-The optional `options` parameter is an object, and can contain the
-following items for SNMPv1 and SNMPv2c:
+`community` parameter defaults to `public`. The optional `options` parameter
+is an object, and can contain the following items:
 
 
  * `port` - UDP port to send requests too, defaults to `161`
@@ -400,8 +406,12 @@ following items for SNMPv1 and SNMPv2c:
  * `version` - Either `snmp.Version1` or `snmp.Version2c`, defaults to
    `snmp.Version1`
 
-When using SNMPv3, the `options` parameter can contain the following
-additional items:
+### SNMP Version 3
+
+`snmp.createSession ([target], [options])`
+
+When using SNMPv3, the `options` parameter can contain the same parameters as
+SNMPv1 and SNMPv2c, and can also contain the following additional items:
 
  * `boots` - Number of times the SNMP manager has booted, defaults to `0`
  * `maxSize` - The maximum message length to be accepted, defaults to `65536`
