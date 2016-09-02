@@ -1597,14 +1597,11 @@ Session.prototype.walk  = function () {
 exports.Session = Session;
 
 exports.createSession = function (target, community, options) {
-	if (options && options.version && options.version > Version2) {
-		if (undefined !== options) {
-			throw new TypeError();		// What should I put in the description?
-		}
-
-		return new Session (target, null, community);
-	} else {
+	if (options || !(community && community.version)) {
 		return new Session (target, community, options);
+	} else {
+		// community becomes our options in this case
+		return new Session (target, null, community);
 	}
 };
 
