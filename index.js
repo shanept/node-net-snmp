@@ -92,14 +92,6 @@ var TrapType = {
 
 _expandConstantObject (TrapType);
 
-var SecurityLevel = {
-	0: "NoAuthNoPriv",
-	1: "AuthNoPriv",
-	2: "AuthPriv"
-};
-
-_expandConstantObject (SecurityLevel);
-
 var SecurityModel = {
 	0: "any",		// reserved
 	1: "SNMPv1",	// reserved
@@ -109,8 +101,20 @@ var SecurityModel = {
 
 _expandConstantObject (SecurityModel);
 
+var Flags = {
+	0: 'NoAuthNoPriv',
+	1: 'AuthNoPriv',
+	3: 'AuthPriv',
+	4: 'Reportable',
+	5: 'ReportableAuthNoPriv',
+	7: 'ReportableAuthPriv'
+};
+
+_expandConstantObject (Flags);
+
 var Version1 = 0;
 var Version2c = 1;
+var Version3 = 3;
 
 /*****************************************************************************
  ** Exception class definitions
@@ -250,7 +254,7 @@ function readUint (buffer, isSigned) {
 				signedBitSet = true;
 		}
 	}
-	
+
 	if (signedBitSet)
 		value -= (1 << (i * 8));
 
@@ -540,7 +544,59 @@ RequestMessage.prototype.toBuffer = function () {
 	return this.buffer;
 };
 
-var V3RequestMessage = function(version, contextEngineID, contextName, scopedPDU, maxSizeResponseScopedPDU, securityModel, securityName, securityLevel, messageProcessingModel) {
+var HeaderData = function(msgID, msgMaxSize, reportable, priv, auth, msgSecurityModel) {
+	if (msgID < 0 || msgID > 2147483647) {
+		throw new RangeError(msgID + " is not a valid message identifier.");
+	}
+
+	if (msgMaxSize < 484 || msgMaxSize > 2147483647) {
+		throw new RangeError(msgMaxSize + " is not a valid maximum message size.");
+	}
+
+	if (msgSecurityModel < 1 || msgSecurityModel > 2147483647) {
+		throw new RangeError(msgSecurityModel + " is not a valid security model.");
+	}
+
+	// We currently only support User-based Security Model
+	if (msgSecurityModel !== USM) {
+		throw new Error("Unknown security model - not supported!");
+	}
+
+	this.id = msgID;
+	this.max = msgMaxSize;
+	this.reportable = !!reportable;
+	this.priv = !!priv;
+	this.auth = !!auth;
+	this.securityModel = msgSecurityModel;
+};
+
+HeaderData.prototype.toBuffer = function(buffer) {
+	var flags = 0;
+	flags |= this.reportable << 2;
+	flags |= this.priv << 1;
+	flags |= this.auth << 0;
+
+	var writer = new ber.Writer ();
+
+	buffer.startSequence();
+
+	buffer.writeInt (this.id);
+	buffer.writeInt (this.max);
+	buffer.writeByte (flags);
+	buffer.writeInt (this.securityModel);
+
+	buffer.endSequence();
+};
+
+var V3RequestMessage = function(version, msgGlobalData, msgSecurityParams, msgData) {
+	if (version < Version3 || version > 2147483647) {
+		throw new RangeError(version + " is not an acceptable version.");
+	}
+
+	this.version = version;
+	this.globalData = msgGlobalData;
+	this.securityParams = msgSecurityParams;
+	this.data = msgData;
 };
 
 V3RequestMessage.prototype.toBuffer = function() {
@@ -552,7 +608,16 @@ V3RequestMessage.prototype.toBuffer = function() {
 	writer.startSequence();
 
 	writer.writeInt (this.version);
-	writer.writeInt
+
+	this.globalData.toBuffer (writer);
+	this.securityParams.toBuffer (writer);
+	this.msgData.toBuffer (writer);
+
+	writer.endSequence();
+
+	this.buffer = writer.buffer;
+
+	return this.buffer;
 };
 
 var ResponseMessage = function (buffer) {
@@ -573,17 +638,8 @@ var ResponseMessage = function (buffer) {
 	}
 };
 
-/*****************************************************************************
- ** Session class definition
- **/
-
-var Session = function (target, community, options) {
-	this.target = target || "127.0.0.1";
-	this.community = community || "public";
-
-	this.version = (options && options.version)
-			? options.version
-			: Version1;
+function SNMP_process_deprecated_options(options) {
+	var processed = {};
 
 	this.transport = (options && options.transport)
 			? options.transport
@@ -608,13 +664,87 @@ var Session = function (target, community, options) {
 	this.sourcePort = (options && options.sourcePort )
 			? parseInt(options.sourcePort)
 			: undefined;
+}
+
+function SNMP_process_v3_options(options) {
+	var processed = {};
+
+	processed = SNMP_process_deprecated_options(options);
+
+	this.boots = (options && options.boots)
+			? options.boots
+			: 0;
+
+	this.maxSize = (options && options.maxSize)
+			? options.maxSize
+			: 65536;
+
+	this.flags = (options && options.flags)
+			? options.flags
+			: flags.NoAuthNoPriv;
+
+
+	// Process message authentication options
+	var privOffset = 1;
+	var authOffset = 0;
+
+	if (!this.flags & (1 << authOffset) && this.flags & (1 << privOffset)) {
+		throw new Error("Message privacy can not be set without authentication.");
+	}
+
+	if (this.flags & (1 << authOffset)) {
+		if (!options.auth) {
+			throw new Error("Message auth flag set but no auth specified.");
+		}
+
+		this.auth = options.auth;
+	}
+
+	if (this.flags & (1 << authOffset) && this.flags & (1 << privOffset)) {
+		this.priv = (options && options.priv)
+			? options.priv
+			: null;
+	}
+
+	this.securityModel = (options && options.securityModel)
+			? options.securityModel
+			: SecurityModel.USM;
+
+	switch (this.securityModel) {
+		case SecurityModel.USM:
+			// Process USM options
+			break;
+		default:
+			throw new RangeError(this.securityModel + " is not a valid or supported security model.");
+	}
+
+}
+
+/*****************************************************************************
+ ** Session class definition
+ **/
+var Session = function (target, community, options) {
+	this.target = target || "127.0.0.1";
+
+	this.version = (options && options.version)
+			? options.version
+			: Version1;
+
+	if (this.version < Version3) {
+		this.community = community || "public";
+		options = SNMP_process_deprecated_options(options);
+	} else {
+		options = SNMP_process_v3_options(options);
+	}
+
+	Object.assign(this, options);
 
 	this.reqs = {};
 	this.reqCount = 0;
 
 	this.dgram = dgram.createSocket (this.transport);
 	this.dgram.unref();
-	
+
 	var me = this;
 	this.dgram.on ("message", me.onMsg.bind (me));
 	this.dgram.on ("close", me.onClose.bind (me));
@@ -841,7 +971,7 @@ Session.prototype.inform = function () {
 
 	/**
 	 ** Support the following signatures:
-	 ** 
+	 **
 	 **    typeOrOid, varbinds, options, callback
 	 **    typeOrOid, varbinds, callback
 	 **    typeOrOid, options, callback
@@ -914,7 +1044,7 @@ Session.prototype.inform = function () {
 		};
 		pduVarbinds.push (varbind);
 	}
-	
+
 	options.port = this.trapPort;
 
 	this.simpleGet (InformRequestPdu, feedCb, pduVarbinds, responseCb, options);
@@ -1006,7 +1136,7 @@ Session.prototype.registerRequest = function (req) {
 Session.prototype.send = function (req, noWait) {
 	try {
 		var me = this;
-		
+
 		var buffer = req.message.toBuffer ();
 
 		this.dgram.send (buffer, 0, buffer.length, req.port, this.target,
@@ -1024,7 +1154,7 @@ Session.prototype.send = function (req, noWait) {
 	} catch (error) {
 		req.responseCb (error);
 	}
-	
+
 	return this;
 };
 
@@ -1077,7 +1207,12 @@ Session.prototype.simpleGet = function (pduClass, feedCb, varbinds,
 	try {
 		var id = _generateId ();
 		var pdu = new pduClass (id, varbinds, options);
-		var message = new RequestMessage (this.version, this.community, pdu);
+		if (this.version >= Version3) {
+			throw new Error();
+			// var message =  new V3RequestMessage (this.version
+		} else {
+			var message = new RequestMessage (this.version, this.community, pdu);
+		}
 
 		req = {
 			id: id,
@@ -1277,7 +1412,7 @@ Session.prototype.trap = function () {
 
 		/**
 		 ** Support the following signatures:
-		 ** 
+		 **
 		 **    typeOrOid, varbinds, options, callback
 		 **    typeOrOid, varbinds, agentAddr, callback
 		 **    typeOrOid, varbinds, callback
@@ -1320,7 +1455,7 @@ Session.prototype.trap = function () {
 			};
 			pduVarbinds.push (varbind);
 		}
-		
+
 		var id = _generateId ();
 
 		if (this.version == Version2c) {
@@ -1455,28 +1590,19 @@ Session.prototype.walk  = function () {
 	return this;
 };
 
-var Dispatcher = function(target, options) {
-	var args = [arguments[0], '', arguments[1]];
-	Dispatcher.super_.apply (this, args);
-};
-
-utils.inherits(Dispatcher, Session);
-
 /*****************************************************************************
  ** Exports
  **/
 
 exports.Session = Session;
-exports.Dispatcher = Dispatcher;
 
 exports.createSession = function (target, community, options) {
-	if (options.version && options.version > Version2) {
+	if (options && options.version && options.version > Version2) {
 		if (undefined !== options) {
 			throw new TypeError();		// What should I put in the description?
 		}
 
-		// community is really our options here
-		return new Dispatcher (target, community);
+		return new Session (target, null, community);
 	} else {
 		return new Session (target, community, options);
 	}
@@ -1492,6 +1618,8 @@ exports.Version3 = Version3;
 exports.ErrorStatus = ErrorStatus;
 exports.TrapType = TrapType;
 exports.ObjectType = ObjectType;
+exports.SecurityModel = SecurityModel;
+exports.Flags = Flags;
 
 exports.ResponseInvalidError = ResponseInvalidError;
 exports.RequestInvalidError = RequestInvalidError;
