@@ -160,6 +160,30 @@ constants are passed to the `trap()` and `inform()` methods exposed by the
  * `EgpNeighborLoss`
  * `EnterpriseSpecific`
 
+## snmp.SecurityModel
+
+This object contants constants used to specify the type of security model
+to be used in an SNMPv3 request or response.  The following constants are
+defined in this object:
+
+ * `any`
+ * `SNMPv1`
+ * `SNMPv2c`
+ * `USM`
+
+## snmp.Flags
+
+This object contains constants used to specify the type of authentication,
+privacy and reporting to be enabled for an SNMP request or respose.  The
+following constants are defined in this object:
+
+ * `NoAuthNoPriv`
+ * `AuthNoPriv`
+ * `AuthPriv`
+ * `Reportable`
+ * `ReportableAuthNoPriv`
+ * `ReportableAuthPriv`
+
 # OID Strings & Varbinds
 
 Some parts of this module accept simple OID strings, e.g.:
@@ -356,8 +380,9 @@ The `createSession()` function instantiates and returns an instance of the
     var session = snmp.createSession ("127.0.0.1", "public", options);
 
 The optional `target` parameter defaults to `127.0.0.1`.  The optional
-`community` parameter defaults to `public`.  The optional `options` parameter
-is an object, and can contain the following items:
+`community` parameter defaults to `public`, for SNMPv1 or SNMPv2c only.
+The optional `options` parameter is an object, and can contain the
+following items for SNMPv1 and SNMPv2c:
 
 
  * `port` - UDP port to send requests too, defaults to `161`
@@ -374,6 +399,22 @@ is an object, and can contain the following items:
  * `trapPort` - UDP port to send traps and informs too, defaults to `162`
  * `version` - Either `snmp.Version1` or `snmp.Version2c`, defaults to
    `snmp.Version1`
+
+When using SNMPv3, the `options` parameter can contain the following
+additional items:
+
+ * `boots` - Number of times the SNMP manager has booted, defaults to `0`
+ * `maxSize` - The maximum message length to be accepted, defaults to `65536`
+ * `flags` - The SNMP flags to be set. These specify the authentication and
+   reporting features that may be enabled. This flag may be any of the
+   SNMP flag values outlined above, defaults to `snmp.Flags.NoAuthNoPriv`
+ * `securityModel` - The SNMPv3 security model to implement. Currently, the
+   only security model that may be used is the User-based Security Model
+   (USM), defaults to `snmp.SecurityModel.USM`.
+
+When using SNMPv3 with the User-based Security Model (USM), the `options`
+parameter may also accept the following additional items:
+ * ---
 
 ## session.on ("close", callback)
 
