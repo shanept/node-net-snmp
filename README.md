@@ -1322,6 +1322,9 @@ Bug reports should be sent to <stephen.vickers.sv@gmail.com>.
  * Remove 64bit integer check to ensure a maximum of 8 bytes are given in send
    and received messages
 
+## Version 2 - beta
+ * Added experimental support for SNMP Version 3
+
 # Roadmap
 
 In no particular order:
@@ -1329,7 +1332,6 @@ In no particular order:
  * Use a single UDP socket for multiple sessions?
  * SNMP agent (i.e. server)
  * SNMP trap/inform receiver
- * SNMP version 3
 
 Suggestions and requirements should be sent to <stephen.vickers.sv@gmail.com>.
 
