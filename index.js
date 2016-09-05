@@ -396,6 +396,14 @@ function writeVarbinds (buffer, varbinds) {
 	buffer.endSequence ();
 }
 
+function HIWORD(dword) {
+	return (dword >> 16) & 0xFFFF;
+}
+
+function LOWORD(dword) {
+	return dword & 0xFFFF;
+}
+
 /*****************************************************************************
  ** PDU class definitions
  **/
@@ -557,9 +565,13 @@ var HeaderData = function(msgID, msgMaxSize, reportable, priv, auth, msgSecurity
 		throw new RangeError(msgSecurityModel + " is not a valid security model.");
 	}
 
-	// We currently only support User-based Security Model
-	if (msgSecurityModel !== USM) {
-		throw new Error("Unknown security model - not supported!");
+	if (auth) {
+		// We currently only support User-based Security Model
+		if (msgSecurityModel !== SecurityModel.USM) {
+			throw new Error("Unknown security model - not supported!");
+		}
+	} else {
+		msgSecurityModel = 0;
 	}
 
 	this.id = msgID;
@@ -700,7 +712,8 @@ function SNMP_process_v3_options(options) {
 		this.auth = options.auth;
 	}
 
-	if (this.flags & (1 << authOffset) && this.flags & (1 << privOffset)) {
+	//      auth           &&    priv
+	if ((this.flags & 0xF) && this.flags & (1 << 1)) {
 		this.priv = (options && options.priv)
 			? options.priv
 			: null;
@@ -1209,7 +1222,38 @@ Session.prototype.simpleGet = function (pduClass, feedCb, varbinds,
 		var pdu = new pduClass (id, varbinds, options);
 		if (this.version >= Version3) {
 			throw new Error();
-			// var message =  new V3RequestMessage (this.version
+
+			var header = new HeaderData(
+				// Message ID
+				//  Use the lower WORD of the SNMP engine boots as the
+				//  higher WORD of the ID, and the lower WORD of the request
+				//  count as the lower WORD of the ID.
+				LOWORD(this.boots) << 16 | LOWORD(this.reqCount),
+				// Maximum message size
+				this.maxSize,
+				// Reportable
+				0,
+				// priv
+				(this.flags >> 1) & 0xF,
+				// auth
+				this.flags & 0xF,
+				// Message Security Model
+				this.securityModel
+			);
+
+			// if auth
+			if (!flags & 0xF) {
+				this.securityModel = 0;
+			}
+
+			switch (this.secuirtyModel) {
+				case SecurityModel.USM:
+					break;
+				case 0:						// No authentication
+					break;
+			}
+
+//			var message =  new V3RequestMessage (this.version, header, security, pdu)
 		} else {
 			var message = new RequestMessage (this.version, this.community, pdu);
 		}
