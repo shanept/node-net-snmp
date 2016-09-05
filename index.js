@@ -105,9 +105,6 @@ var Flags = {
 	0: 'NoAuthNoPriv',
 	1: 'AuthNoPriv',
 	3: 'AuthPriv',
-	4: 'Reportable',
-	5: 'ReportableAuthNoPriv',
-	7: 'ReportableAuthPriv'
 };
 
 _expandConstantObject (Flags);

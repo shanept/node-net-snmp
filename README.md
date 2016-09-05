@@ -180,9 +180,6 @@ following constants are defined in this object:
  * `NoAuthNoPriv`
  * `AuthNoPriv`
  * `AuthPriv`
- * `Reportable`
- * `ReportableAuthNoPriv`
- * `ReportableAuthPriv`
 
 # OID Strings & Varbinds
 
