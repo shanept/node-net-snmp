@@ -552,7 +552,7 @@ RequestMessage.prototype.toBuffer = function () {
 	return this.buffer;
 };
 
-var HeaderData = function(msgID, msgMaxSize, reportable, priv, auth, msgSecurityModel) {
+var HeaderData = function(msgID, msgMaxSize, msgFlags, msgSecurityModel) {
 	if (msgID < 0 || msgID > 2147483647) {
 		throw new RangeError(msgID + " is not a valid message identifier.");
 	}
@@ -565,36 +565,32 @@ var HeaderData = function(msgID, msgMaxSize, reportable, priv, auth, msgSecurity
 		throw new RangeError(msgSecurityModel + " is not a valid security model.");
 	}
 
-	if (auth) {
+	// Do we require authentication?
+	if (msgFlags & 0x01) {
 		// We currently only support User-based Security Model
 		if (msgSecurityModel !== SecurityModel.USM) {
 			throw new Error("Unknown security model - not supported!");
 		}
+	} else if (msgFlags & 0x02) {
+		throw new Error("Can not set privacy without authentication.");
 	} else {
 		msgSecurityModel = 0;
 	}
 
 	this.id = msgID;
 	this.max = msgMaxSize;
-	this.reportable = !!reportable;
-	this.priv = !!priv;
-	this.auth = !!auth;
+	this.flags = msgFlags & 0x07;
 	this.securityModel = msgSecurityModel;
 };
 
 HeaderData.prototype.toBuffer = function(buffer) {
-	var flags = 0;
-	flags |= this.reportable << 2;
-	flags |= this.priv << 1;
-	flags |= this.auth << 0;
-
 	var writer = new ber.Writer ();
 
 	buffer.startSequence();
 
 	buffer.writeInt (this.id);
 	buffer.writeInt (this.max);
-	buffer.writeByte (flags);
+	buffer.writeByte (this.flags);
 	buffer.writeInt (this.securityModel);
 
 	buffer.endSequence();
@@ -700,11 +696,13 @@ function SNMP_process_v3_options(options) {
 	var privOffset = 1;
 	var authOffset = 0;
 
-	if (!this.flags & (1 << authOffset) && this.flags & (1 << privOffset)) {
+	//    auth             &&  priv
+	if (!this.flags & 0x01 && this.flags & 0x02) {
 		throw new Error("Message privacy can not be set without authentication.");
 	}
 
-	if (this.flags & (1 << authOffset)) {
+	//    auth
+	if (this.flags & 0x01) {
 		if (!options.auth) {
 			throw new Error("Message auth flag set but no auth specified.");
 		}
@@ -712,8 +710,8 @@ function SNMP_process_v3_options(options) {
 		this.auth = options.auth;
 	}
 
-	//      auth           &&    priv
-	if ((this.flags & 0xF) && this.flags & (1 << 1)) {
+	//      auth            &&    priv
+	if ((this.flags & 0x01) && this.flags & 0x02) {
 		this.priv = (options && options.priv)
 			? options.priv
 			: null;
@@ -1231,18 +1229,14 @@ Session.prototype.simpleGet = function (pduClass, feedCb, varbinds,
 				LOWORD(this.boots) << 16 | LOWORD(this.reqCount),
 				// Maximum message size
 				this.maxSize,
-				// Reportable
-				0,
-				// priv
-				(this.flags >> 1) & 0xF,
-				// auth
-				this.flags & 0xF,
+				// Flags
+				this.flags,
 				// Message Security Model
 				this.securityModel
 			);
 
-			// if auth
-			if (!flags & 0xF) {
+			// if !auth
+			if (!flags & 0x01) {
 				this.securityModel = 0;
 			}
 
