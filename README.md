@@ -410,7 +410,12 @@ is an object, and can contain the following items:
 When using SNMPv3, the `options` parameter can contain the same parameters as
 SNMPv1 and SNMPv2c, and can also contain the following additional items:
 
- * `boots` - Number of times the SNMP manager has booted, defaults to `0`
+ * `id` - The Engine ID, defaults to a randomly generated ID. If this value
+   is missing, an error is thrown
+ * `boots` - Number of times the SNMP manager has booted. If this value  is
+   missing, an error is thrown
+ * `time` - Unix timestamp of last boot, defaults to current unix time. If
+   this value is  missing, an error is thrown
  * `maxSize` - The maximum message length to be accepted, defaults to `65536`
  * `flags` - The SNMP flags to be set. These specify the authentication and
    reporting features that may be enabled. This flag may be any of the
