@@ -418,6 +418,9 @@ SNMPv1 and SNMPv2c, and can also contain the following additional items:
  * `securityModel` - The SNMPv3 security model to implement. Currently, the
    only security model that may be used is the User-based Security Model
    (USM), defaults to `snmp.SecurityModel.USM`.
+ * `securityModelOptions` - The options to be passed to the security model
+   constructor. This must be an object, the values of which are defined by
+   the security model in place (referenced by the `securityModel` option).
 
 When using SNMPv3 with the User-based Security Model (USM), the `options`
 parameter may also accept the following additional items:
