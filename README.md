@@ -416,7 +416,7 @@ SNMPv1 and SNMPv2c, and can also contain the following additional items:
    missing, an error is thrown
  * `time` - Unix timestamp of last boot, defaults to current unix time. If
    this value is  missing, an error is thrown
- * `maxSize` - The maximum message length to be accepted, defaults to `65536`
+ * `maxSize` - The maximum message length to be accepted, defaults to `65535`
  * `flags` - The SNMP flags to be set. These specify the authentication and
    reporting features that may be enabled. This flag may be any of the
    SNMP flag values outlined above, defaults to `snmp.Flags.NoAuthNoPriv`
