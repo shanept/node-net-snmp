@@ -429,7 +429,10 @@ SNMPv1 and SNMPv2c, and can also contain the following additional items:
 
 When using SNMPv3 with the User-based Security Model (USM), the `options`
 parameter may also accept the following additional items:
- * ---
+ * `username` - The user (principal) on whose behalf the messages are being
+   exchanged. If the value is missing, an error is thrown
+ * `authParams` - Defined by the authentication protocol in use.
+ * `privParams` - Defined by the privacy protocol in use (if any).
 
 ## session.on ("close", callback)
 
