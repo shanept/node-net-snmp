@@ -23,7 +23,10 @@ and send SNMP traps or informs:
         version: 3,             // IMPORTANT
         flags: snmp.authPriv,
         securityModel: snmp.USM,
-        securityParameters: {}  // User-based Security Model parameters
+        UsmOptions: {           // User-based Security Model parameters
+            authModel: snmp.AuthTypes.MD5,
+            privModel: snmp.PrivTypes.DES
+        }
     });
 
     var oids = ["1.3.6.1.2.1.1.5.0", "1.3.6.1.2.1.1.6.0"];
@@ -410,7 +413,7 @@ is an object, and can contain the following items:
 When using SNMPv3, the `options` parameter can contain the same parameters as
 SNMPv1 and SNMPv2c, and can also contain the following additional items:
 
- * `id` - The Engine ID, defaults to a randomly generated ID. If this value
+ * `engineId` - The Engine ID, defaults to a randomly generated ID. If this value
    is missing, an error is thrown
  * `boots` - Number of times the SNMP manager has booted. If this value  is
    missing, an error is thrown
@@ -423,16 +426,16 @@ SNMPv1 and SNMPv2c, and can also contain the following additional items:
  * `securityModel` - The SNMPv3 security model to implement. Currently, the
    only security model that may be used is the User-based Security Model
    (USM), defaults to `snmp.SecurityModel.USM`.
- * `securityModelOptions` - The options to be passed to the security model
-   constructor. This must be an object, the values of which are defined by
-   the security model in place (referenced by the `securityModel` option).
-
-When using SNMPv3 with the User-based Security Model (USM), the `options`
-parameter may also accept the following additional items:
  * `username` - The user (principal) on whose behalf the messages are being
    exchanged. If the value is missing, an error is thrown
- * `authParams` - Defined by the authentication protocol in use.
- * `privParams` - Defined by the privacy protocol in use (if any).
+ * `UsmOptions` - The options to be passed to the User-based Security Model
+   constructor. This must be an object, the values of which are defined by
+   the user-based security model.
+
+When using SNMPv3 with the User-based Security Model (USM), the `UsmOptions`
+parameter may also accept the following additional items:
+ * `authModel` - The authentication model to use.
+ * `privModel` - The privacy model to use, if any.
 
 ## session.on ("close", callback)
 
