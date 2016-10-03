@@ -21,6 +21,7 @@ and send SNMP traps or informs:
     // SNMP v3
     var session = snmp.createSession ("127.0.0.1", {
         version: 3,             // IMPORTANT
+        engineId: '<target_snmpEngineId>',
         flags: snmp.authPriv,
         securityModel: snmp.USM,
         UsmOptions: {           // User-based Security Model parameters
@@ -413,8 +414,8 @@ is an object, and can contain the following items:
 When using SNMPv3, the `options` parameter can contain the same parameters as
 SNMPv1 and SNMPv2c, and can also contain the following additional items:
 
- * `engineId` - The Engine ID, defaults to a randomly generated ID. If this value
-   is missing, an error is thrown
+ * `engineId` - The Engine ID of the authoritative engine. If this value is
+   missing, an error is thrown
  * `boots` - Number of times the SNMP manager has booted. If this value  is
    missing, an error is thrown
  * `time` - Unix timestamp of last boot, defaults to current unix time. If
