@@ -64,6 +64,7 @@ This module aims to be fully compliant with the following RFCs:
  * [3414][3414] - User-based Security Model (version 3)
  * [3415][3415] - View-based Access Control Model (version 3)
  * [3416][3416] - Simple Network Management Protocol (SNMP) (version 2c/3)
+ * [3826][3826] - AES Cipher Algorithm for USM (version 3)
  * [5590][5590] - Transport Subsystem for SNMP (version 3)
  * [5591][5591] - Transport Security Model for SNMP (version 3)
 
@@ -78,6 +79,7 @@ to implement, the SNMP version 2c/3 report request type.
 [3414]: https://tools.ietf.org/rfc/rfc3414.txt "RFC 3414"
 [3415]: https://tools.ietf.org/rfc/rfc3415.txt "RFC 3415"
 [3416]: https://tools.ietf.org/rfc/rfc3416.txt "RFC 3416"
+[3826]: https://tools.ietf.org/rfc/rfc3826.txt "RFC 3826"
 [5590]: https://tools.ietf.org/rfc/rfc5590.txt "RFC 5590"
 [5591]: https://tools.ietf.org/rfc/rfc5591.txt "RFC 5591"
 
