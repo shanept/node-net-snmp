@@ -436,7 +436,9 @@ SNMPv1 and SNMPv2c, and can also contain the following additional items:
 When using SNMPv3 with the User-based Security Model (USM), the `UsmOptions`
 parameter may also accept the following additional items:
  * `authModel` - The authentication model to use.
+ * `authKey` - The password for the authentication model.
  * `privModel` - The privacy model to use, if any.
+ * `privKey` - The password for the privacy model.
 
 ## session.on ("close", callback)
 
