@@ -416,7 +416,7 @@ is an object, and can contain the following items:
 When using SNMPv3, the `options` parameter can contain the same parameters as
 SNMPv1 and SNMPv2c, and can also contain the following additional items:
 
- * `engineId` - The Engine ID of the authoritative engine. If this value is
+ * `engineID` - The Engine ID of the authoritative engine. If this value is
    missing, an error is thrown
  * `boots` - Number of times the SNMP manager has booted. If this value  is
    missing, an error is thrown
@@ -426,11 +426,15 @@ SNMPv1 and SNMPv2c, and can also contain the following additional items:
  * `flags` - The SNMP flags to be set. These specify the authentication and
    reporting features that may be enabled. This flag may be any of the
    SNMP flag values outlined above, defaults to `snmp.Flags.NoAuthNoPriv`
+ * `contextEngineID` - The context engine ID. Defaults to the same value as
+   engineID
+ * `contextName` - The name of the context at the specified context engine.
+   Defaults to an empty (ie. zero-length) string value
  * `securityModel` - The SNMPv3 security model to implement. Currently, the
    only security model that may be used is the User-based Security Model
    (USM), defaults to `snmp.SecurityModel.USM`.
- * `username` - The user (principal) on whose behalf the messages are being
-   exchanged. If the value is missing, an error is thrown
+ * `securityName` - The principal on whose behalf the messages are being
+   exchanged - like a username. If the value is missing, an error is thrown
  * `UsmOptions` - The options to be passed to the User-based Security Model
    constructor. This must be an object, the values of which are defined by
    the user-based security model.
