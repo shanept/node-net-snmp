@@ -3,7 +3,7 @@
 
 var dns = require ("dns");
 var os = require ("os");
-var snmp = require ("../");
+var snmp = require ("../lib/");
 
 if (process.argv.length < 6) {
 	console.log ("usage: node snmp-trap <target> <community> <version> <typeOrOid>");

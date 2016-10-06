@@ -1,7 +1,7 @@
 
 // Copyright 2013 Stephen Vickers
 
-var snmp = require ("../");
+var snmp = require ("../lib/");
 var util = require ("util");
 
 if (process.argv.length < 5) {

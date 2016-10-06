@@ -3,7 +3,7 @@
 
 var dns = require ("dns");
 var os = require ("os");
-var snmp = require ("../");
+var snmp = require ("../lib/");
 
 if (process.argv.length < 7) {
 	console.log ("usage: node specify-sysuptime-to-trap <target> <community>\n"

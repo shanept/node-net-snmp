@@ -1,7 +1,7 @@
 
 // Copyright 2013 Stephen Vickers
 
-var snmp = require ("../");
+var snmp = require ("../lib/");
 
 if (process.argv.length < 6) {
 	console.log ("usage: snmp-table <target> <community> <version> <oid>");
