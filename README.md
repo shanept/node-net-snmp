@@ -20,10 +20,10 @@ and send SNMP traps or informs:
 
     // SNMP v3
     var session = snmp.createSession ("127.0.0.1", {
-        version: 3,             // IMPORTANT
+        version: snmp.Version3,             // IMPORTANT
         engineId: '<target_snmpEngineId>',
         flags: snmp.authPriv,
-        securityModel: snmp.USM,
+        securityModel: snmp.SecurityModel.USM,
         UsmOptions: {           // User-based Security Model parameters
             authModel: snmp.AuthTypes.MD5,
             privModel: snmp.PrivTypes.DES
@@ -270,7 +270,7 @@ Requests made with SNMP version 1 can simply assume all OIDs have a value when
 no error object is passed to the `callback`, i.e.:
 
     var oids = ["1.3.6.1.2.1.1.5.0", "1.3.6.1.2.1.1.6.0"];
-    
+
     session.get (oids, function (error, varbinds) {
         if (error) {
             console.error (error.toString ());
@@ -290,7 +290,7 @@ When using SNMP version 2c each varbind must be checked to see if its value
 was computed and returned successfully:
 
     var oids = ["1.3.6.1.2.1.1.5.0", "1.3.6.1.2.1.1.6.0"];
-    
+
     session.get (oids, function (error, varbinds) {
         if (error) {
             console.error (error.toString ());
@@ -386,7 +386,7 @@ The `createSession()` function instantiates and returns an instance of the
         trapPort: 162,
         version: snmp.Version1
     };
-    
+
     var session = snmp.createSession ("127.0.0.1", "public", options);
 
 The optional `target` parameter defaults to `127.0.0.1`.  The optional
@@ -516,7 +516,7 @@ The following example fetches values for the sysName (`1.3.6.1.2.1.1.5.0`) and
 sysLocation (`1.3.6.1.2.1.1.6.0`) OIDs:
 
     var oids = ["1.3.6.1.2.1.1.5.0", "1.3.6.1.2.1.1.6.0"];
-    
+
     session.get (oids, function (error, varbinds) {
         if (error) {
             console.error (error.toString ());
@@ -524,7 +524,7 @@ sysLocation (`1.3.6.1.2.1.1.6.0`) OIDs:
             for (var i = 0; i < varbinds.length; i++) {
                 // for version 1 we can assume all OIDs were successful
                 console.log (varbinds[i].oid + "|" + varbinds[i].value);
-            
+
                 // for version 2c we must check each OID for an error condition
                 if (snmp.isVarbindError (varbinds[i]))
                     console.error (snmp.varbindError (varbinds[i]));
@@ -576,9 +576,9 @@ first 20 OIDs in the ifDescr (`1.3.6.1.2.1.2.2.1.2`) and ifType
         "1.3.6.1.2.1.2.2.1.2",
         "1.3.6.1.2.1.2.2.1.3"
     ];
-    
+
     var nonRepeaters = 2;
-    
+
     session.getNext (oids, nonRepeaters, function (error, varbinds) {
         if (error) {
             console.error (error.toString ());
@@ -632,7 +632,7 @@ sysObjectID (`1.3.6.1.2.1.1.1.0`) and sysName (`1.3.6.1.2.1.1.4.0`) OIDs:
         "1.3.6.1.2.1.1.1.0",
         "1.3.6.1.2.1.1.4.0"
     ];
-    
+
     session.getNext (oids, function (error, varbinds) {
         if (error) {
             console.error (error.toString ());
@@ -640,7 +640,7 @@ sysObjectID (`1.3.6.1.2.1.1.1.0`) and sysName (`1.3.6.1.2.1.1.4.0`) OIDs:
             for (var i = 0; i < varbinds.length; i++) {
                 // for version 1 we can assume all OIDs were successful
                 console.log (varbinds[i].oid + "|" + varbinds[i].value);
-            
+
                 // for version 2c we must check each OID for an error condition
                 if (snmp.isVarbindError (varbinds[i]))
                     console.error (snmp.varbindError (varbinds[i]));
@@ -708,7 +708,7 @@ The following example sends an enterprise specific inform to a remote host,
 and includes two enterprise specific varbinds:
 
     var informOid = "1.3.6.1.4.1.2000.1";
-    
+
     var varbinds = [
         {
             oid: "1.3.6.1.4.1.2000.2",
@@ -721,7 +721,7 @@ and includes two enterprise specific varbinds:
             value: "hardware-ok"
         }
     ];
-    
+
     // Override sysUpTime, specfiying it as 10 seconds...
     var options = {upTime: 1000};
     session.inform (informOid, varbinds, options, function (error) {
@@ -764,7 +764,7 @@ sysLocation (`1.3.6.1.2.1.1.6.0`) OIDs:
             value: "somewhere"
         }
     ];
-    
+
     session.set (varbinds, function (error, varbinds) {
         if (error) {
             console.error (error.toString ());
@@ -772,7 +772,7 @@ sysLocation (`1.3.6.1.2.1.1.6.0`) OIDs:
             for (var i = 0; i < varbinds.length; i++) {
                 // for version 1 we can assume all OIDs were successful
                 console.log (varbinds[i].oid + "|" + varbinds[i].value);
-            
+
                 // for version 2c we must check each OID for an error condition
                 if (snmp.isVarbindError (varbinds[i]))
                     console.error (snmp.varbindError (varbinds[i]));
@@ -825,12 +825,12 @@ be called.
 The following example fetches all OIDS under the system (`1.3.6.1.2.1.1`) OID:
 
     var oid = "1.3.6.1.2.1.1";
-    
+
     function doneCb (error) {
         if (error)
             console.error (error.toString ());
     }
-    
+
     function feedCb (varbinds) {
         for (var i = 0; i < varbinds.length; i++) {
             if (snmp.isVarbindError (varbinds[i]))
@@ -839,9 +839,9 @@ The following example fetches all OIDS under the system (`1.3.6.1.2.1.1`) OID:
                 console.log (varbinds[i].oid + "|" + varbinds[i].value);
         }
     }
-    
+
     var maxRepetitions = 20;
-    
+
     // The maxRepetitions argument is optional, and will be ignored unless using
     // SNMP verison 2c
     session.subtree (oid, maxRepetitions, feedCb, doneCb);
@@ -900,7 +900,7 @@ instance of the `RequestFailedError` class.
 The following example fetches the ifTable (`1.3.6.1.2.1.2.2`) table:
 
     var oid = "1.3.6.1.2.1.2.2";
-    
+
     function sortInt (a, b) {
         if (a > b)
             return 1;
@@ -909,7 +909,7 @@ The following example fetches the ifTable (`1.3.6.1.2.1.2.2`) table:
         else
             return 0;
     }
-    
+
     function responseCb (error, table) {
         if (error) {
             console.error (error.toString ());
@@ -921,7 +921,7 @@ The following example fetches the ifTable (`1.3.6.1.2.1.2.2`) table:
             for (index in table)
                 indexes.push (parseInt (index));
             indexes.sort (sortInt);
-            
+
             // Use the sorted indexes we've calculated to walk through each
             // row in order
             for (var i = 0; i < indexes.length; i++) {
@@ -932,7 +932,7 @@ The following example fetches the ifTable (`1.3.6.1.2.1.2.2`) table:
                 for (column in table[indexes[i]])
                     columns.push (parseInt (column));
                 columns.sort (sortInt);
-                
+
                 // Print index, then each column indented under the index
                 console.log ("row for index = " + indexes[i]);
                 for (var j = 0; j < columns.length; j++) {
@@ -942,9 +942,9 @@ The following example fetches the ifTable (`1.3.6.1.2.1.2.2`) table:
             }
         }
     }
-    
+
     var maxRepetitions = 20;
-    
+
     // The maxRepetitions argument is optional, and will be ignored unless using
     // SNMP verison 2c
     session.table (oid, maxRepetitions, responseCb);
@@ -965,7 +965,7 @@ specifies that only the ifDescr (`1.3.6.1.2.1.2.2.1.2`) and ifPhysAddress
 
     var oid = "1.3.6.1.2.1.2.2";
     var columns = [2, 6];
-    
+
     function sortInt (a, b) {
         if (a > b)
             return 1;
@@ -974,7 +974,7 @@ specifies that only the ifDescr (`1.3.6.1.2.1.2.2.1.2`) and ifPhysAddress
         else
             return 0;
     }
-    
+
     function responseCb (error, table) {
         if (error) {
             console.error (error.toString ());
@@ -986,7 +986,7 @@ specifies that only the ifDescr (`1.3.6.1.2.1.2.2.1.2`) and ifPhysAddress
             for (index in table)
                 indexes.push (parseInt (index));
             indexes.sort (sortInt);
-            
+
             // Use the sorted indexes we've calculated to walk through each
             // row in order
             for (var i = 0; i < indexes.length; i++) {
@@ -997,7 +997,7 @@ specifies that only the ifDescr (`1.3.6.1.2.1.2.2.1.2`) and ifPhysAddress
                 for (column in table[indexes[i]])
                     columns.push (parseInt (column));
                 columns.sort (sortInt);
-                
+
                 // Print index, then each column indented under the index
                 console.log ("row for index = " + indexes[i]);
                 for (var j = 0; j < columns.length; j++) {
@@ -1007,9 +1007,9 @@ specifies that only the ifDescr (`1.3.6.1.2.1.2.2.1.2`) and ifPhysAddress
             }
         }
     }
-    
+
     var maxRepetitions = 20;
-    
+
     // The maxRepetitions argument is optional, and will be ignored unless using
     // SNMP verison 2c
     session.tableColumns (oid, columns, maxRepetitions, responseCb);
@@ -1083,7 +1083,7 @@ in the trap.  Before the trap is sent the `agentAddr` field is calculated using
 DNS to resolve the hostname of the local host:
 
     var enterpriseOid = "1.3.6.1.4.1.2000.1"; // made up, but it may be valid
-    
+
     var varbinds = [
         {
             oid: "1.3.6.1.2.1.1.5.0",
@@ -1091,7 +1091,7 @@ DNS to resolve the hostname of the local host:
             value: "host1"
         }
     ];
-    
+
     dns.lookup (os.hostname (), function (error, agentAddress) {
         if (error) {
             console.error (error);
@@ -1119,7 +1119,7 @@ The following example sends an enterprise specific trap to a remote host using
 a SNMP version 2c trap, and includes two enterprise specific varbinds:
 
     var trapOid = "1.3.6.1.4.1.2000.1";
-    
+
     var varbinds = [
         {
             oid: "1.3.6.1.4.1.2000.2",
@@ -1132,7 +1132,7 @@ a SNMP version 2c trap, and includes two enterprise specific varbinds:
             value: "status-error"
         }
     ];
-    
+
     // version 2c should have been specified when creating the session
     session.trap (trapOid, varbinds, function (error) {
         if (error)
@@ -1179,12 +1179,12 @@ The following example walks to the end of the MIB tree starting from the
 ifTable (`1.3.6.1.2.1.2.2`) OID:
 
     var oid = "1.3.6.1.2.1.2.2";
-    
+
     function doneCb (error) {
         if (error)
             console.error (error.toString ());
     }
-    
+
     function feedCb (varbinds) {
         for (var i = 0; i < varbinds.length; i++) {
             if (snmp.isVarbindError (varbinds[i]))
@@ -1193,9 +1193,9 @@ ifTable (`1.3.6.1.2.1.2.2`) OID:
                 console.log (varbinds[i].oid + "|" + varbinds[i].value);
         }
     }
-    
+
     var maxRepetitions = 20;
-    
+
     // The maxRepetitions argument is optional, and will be ignored unless using
     // SNMP verison 2c
     session.walk (oid, maxRepetitions, feedCb, doneCb);
