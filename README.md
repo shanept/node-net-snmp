@@ -21,7 +21,7 @@ and send SNMP traps or informs:
     // SNMP v3
     var session = snmp.createSession ("127.0.0.1", {
         version: snmp.Version3,             // IMPORTANT
-        engineId: '<target_snmpEngineId>',
+        engineID: '<target_snmpEngineId>',
         flags: snmp.authPriv,
         securityModel: snmp.SecurityModel.USM,
         UsmOptions: {           // User-based Security Model parameters
