@@ -16,7 +16,9 @@ Sessions to remote hosts can then be created and used to perform SNMP requests
 and send SNMP traps or informs:
 
     // SNMP v1/v2
-    var session = snmp.createSession ("127.0.0.1", "public");
+    var session = snmp.createSession ("127.0.0.1", {
+        community: "public"
+    });
 
     // SNMP v3
     var session = snmp.createSession ("127.0.0.1", {
@@ -51,6 +53,13 @@ and send SNMP traps or informs:
 
 [SNMP]: http://en.wikipedia.org/wiki/Simple_Network_Management_Protocol "SNMP"
 [npm]: https://npmjs.org/ "npm"
+
+# Deprecation notice
+The node-net-snmp v1 API has been deprecated as of Version 2 due to it's specificity to SNMPv2. We now support SNMP version 3 as of the second version of this package, therefore the following API must be deprecated.
+
+**createSession ([target], [community], [options])**
+
+The API is still available however a warning will be emit until removal. To ensure programs continue to operate beyond removal, supply the community string as an option, as per the code sample above.
 
 # Standards Compliance
 
@@ -370,9 +379,9 @@ instances of the `Session` class.
 Due to the current implementation, there are slightly separate APIs between
 SNMP Version1/2c and Version 3.
 
-### SNMP Version 1/2c
+### How to use
 
-`snmp.createSession ([target], [community], [options])`
+**createSession ([target], [options])**
 
 The `createSession()` function instantiates and returns an instance of the
 `Session` class:
@@ -384,15 +393,16 @@ The `createSession()` function instantiates and returns an instance of the
         timeout: 5000,
         transport: "udp4",
         trapPort: 162,
-        version: snmp.Version1
+        version: snmp.Version1,
+        community: "public"
     };
 
-    var session = snmp.createSession ("127.0.0.1", "public", options);
+    var session = snmp.createSession ("127.0.0.1", options);
 
 The optional `target` parameter defaults to `127.0.0.1`.  The optional
-`community` parameter defaults to `public`. The optional `options` parameter
-is an object, and can contain the following items:
-
+`community` parameter defaults to `public`. An object may be passed in
+the style of the SNMPv3 API as options instead of community. The optional
+`options` parameter is an object, and can contain the following items:
 
  * `port` - UDP port to send requests too, defaults to `161`
  * `retries` - Number of times to re-send a request, defaults to `1`
@@ -408,6 +418,8 @@ is an object, and can contain the following items:
  * `trapPort` - UDP port to send traps and informs too, defaults to `162`
  * `version` - Either `snmp.Version1` or `snmp.Version2c`, defaults to
    `snmp.Version1`
+ * `community` - The SNMP community string, defaults to "public". Only
+   available for SNMPv3
 
 ### SNMP Version 3
 
